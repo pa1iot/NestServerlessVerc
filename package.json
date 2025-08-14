@@ -33,7 +33,8 @@
      "invoke": "sls invoke -f",
      "serverless:info": "sls info",
      "validate:migration": "node validate-migration.js",
-     "prevalidate:migration": "npm install"
+     "prevalidate:migration": "npm install",
+     "postinstall": "prisma generate"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
