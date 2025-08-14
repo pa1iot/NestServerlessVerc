@@ -454,6 +454,7 @@ export class AuthController {
 
   @Post('update-name')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update the user name by ID' })
   @ApiBody({ type: UpdateUserNameDto })
   async updateUserName(@Body() dto: UpdateUserNameDto) {
