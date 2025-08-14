@@ -1,4 +1,4 @@
-import { APIGatewayAuthorizerHandler, APIGatewayAuthorizerResult } from 'aws-lambda'
+import { APIGatewayTokenAuthorizerHandler, APIGatewayAuthorizerResult, APIGatewayTokenAuthorizerEvent } from 'aws-lambda'
 import * as jwt from 'jsonwebtoken'
 import { Logger } from '../shared/utils'
 
@@ -33,7 +33,7 @@ const generatePolicy = (
   }
 }
 
-export const handler: APIGatewayAuthorizerHandler = async (event) => {
+export const handler: APIGatewayTokenAuthorizerHandler = async (event: APIGatewayTokenAuthorizerEvent) => {
   try {
     Logger.info('JWT Authorizer invoked', {
       methodArn: event.methodArn,
