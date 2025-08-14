@@ -1,0 +1,9 @@
+http://localhost:9999/auth/signup
+
+
+###
+http://localhost:9999/auth/signin
+
+
+###
+http://localhost:9999/auth/signout

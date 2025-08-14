@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  phoneNumber     String    @unique
+  name            String?
+  role            UserRole  @default(USER)
+  isPhoneVerified Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+  createdBy       Int?                 // FK to another user.id (admin who created this user)
+
+  devices  Device[]
+  trackings  Tracking[]
+  sharedDevices   SharedDevice[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EMPLOYEE
+  USER
+}
+
+model OTP {
+  id          Int      @id @default(autoincrement())
+  phoneNumber String
+  otp         String
+  name        String?  // store name temporarily
+  expiresAt   DateTime
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Device {
+  id          Int       @id @default(autoincrement())
+  deviceName  String?
+  iotSimNumber String?
+  code        String    @unique
+  qrCodeUrl   String
+  assignedTo  Int?      
+  assignedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  status      DeviceStatus
+
+  user        User?     @relation(fields: [assignedTo], references: [id])
+  sharedDevices SharedDevice[]
+}
+
+model Tracking {
+  id              Int      @id @default(autoincrement())
+  deviceCode      String
+  iotSimNumber    String?
+  lat             String
+  long            String
+  trackedAt       DateTime @default(now())
+  userId          Int?
+  level           String?
+  altitude        String?
+  speed           String?
+  compress        String?
+  weight          String?
+  noOfSatellites  String?
+
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([deviceCode])
+}
+
+model SharedDevice {
+  id        Int      @id @default(autoincrement())
+  deviceId  Int
+  userId    Int       // the user receiving access
+  sharedAt  DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  device    Device    @relation(fields: [deviceId], references: [id])
+
+  @@unique([deviceId, userId])
+  @@index([deviceId])
+
+}
+

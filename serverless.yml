@@ -1,0 +1,348 @@
+service: gps-tracking-serverless
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 512
+  
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '7d'}
+    SMS_API_KEY: ${env:SMS_API_KEY}
+    WEBSOCKET_ENDPOINT: ${env:WEBSOCKET_ENDPOINT}
+    STAGE: ${self:provider.stage}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/WebSocketConnections-${self:provider.stage}
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  # JWT Authorizer
+  jwtAuthorizer:
+    handler: src/auth/jwt-authorizer.handler
+    
+  # Authentication Functions
+  sendOtp:
+    handler: src/auth/send-otp.handler
+    events:
+      - http:
+          path: auth/send-otp
+          method: post
+          cors: true
+  
+  verifyOtp:
+    handler: src/auth/verify-otp.handler
+    events:
+      - http:
+          path: auth/verify-otp
+          method: post
+          cors: true
+  
+  register:
+    handler: src/auth/register.handler
+    events:
+      - http:
+          path: auth/register
+          method: post
+          cors: true
+  
+  getProfile:
+    handler: src/auth/get-profile.handler
+    events:
+      - http:
+          path: auth/profile
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  updateProfile:
+    handler: src/auth/update-profile.handler
+    events:
+      - http:
+          path: auth/profile
+          method: put
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  # Device Management Functions
+  createDevices:
+    handler: src/devices/create-devices.handler
+    timeout: 60
+    events:
+      - http:
+          path: devices/generate
+          method: post
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  getAllDevices:
+    handler: src/devices/get-all-devices.handler
+    events:
+      - http:
+          path: devices
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  getUserDevices:
+    handler: src/devices/get-user-devices.handler
+    events:
+      - http:
+          path: devices/assigned/{userId}
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  assignDevice:
+    handler: src/devices/assign-device.handler
+    events:
+      - http:
+          path: devices/assign
+          method: post
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  trackDevice:
+    handler: src/devices/track-device.handler
+    events:
+      - http:
+          path: devices/tracking/{code}/{iotSimNumber}
+          method: post
+          cors: true
+  
+  getTrackingHistory:
+    handler: src/devices/get-tracking-history.handler
+    events:
+      - http:
+          path: devices/tracking/{code}/history
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  updateIotSim:
+    handler: src/devices/update-iot-sim.handler
+    events:
+      - http:
+          path: devices/iotnumber
+          method: post
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  getDeviceByCode:
+    handler: src/devices/get-device-by-code.handler
+    events:
+      - http:
+          path: devices/{code}
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  updateDeviceName:
+    handler: src/devices/update-device-name.handler
+    events:
+      - http:
+          path: devices/editname
+          method: post
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  shareDevice:
+    handler: src/devices/share-device.handler
+    events:
+      - http:
+          path: devices/share
+          method: post
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  unshareDevice:
+    handler: src/devices/unshare-device.handler
+    events:
+      - http:
+          path: devices/share
+          method: delete
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  getSharedDevices:
+    handler: src/devices/get-shared-devices.handler
+    events:
+      - http:
+          path: devices/shared/{userId}
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  getSharedUsers:
+    handler: src/devices/get-shared-users.handler
+    events:
+      - http:
+          path: devices/shared-users/{deviceId}
+          method: get
+          cors: true
+          authorizer:
+            name: jwtAuthorizer
+            type: request
+  
+  # WebSocket Functions
+  websocketConnect:
+    handler: src/websocket/connect.handler
+    events:
+      - websocket:
+          route: $connect
+  
+  websocketDisconnect:
+    handler: src/websocket/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+  
+  websocketJoinRoom:
+    handler: src/websocket/join-room.handler
+    events:
+      - websocket:
+          route: join-room
+  
+  websocketDefault:
+    handler: src/websocket/default.handler
+    events:
+      - websocket:
+          route: $default
+
+resources:
+  Resources:
+    # DynamoDB Table for WebSocket Connections
+    WebSocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: WebSocketConnections-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: deviceCode
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: DeviceCodeIndex
+            KeySchema:
+              - AttributeName: deviceCode
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+    
+    # API Gateway CORS Configuration
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'RestApiApigEvent'
+    
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'RestApiApigEvent'
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-plugin-warmup
+
+custom:
+  webpack:
+    webpackConfig: webpack.config.js
+    includeModules:
+      forceExclude:
+        - aws-sdk
+    packager: npm
+  
+  warmup:
+    enabled: true
+    events:
+      - schedule: rate(5 minutes)
+    timeout: 20
+    prewarm: true
+  
+  serverless-offline:
+    httpPort: 3000
+    websocketPort: 3001
+    lambdaPort: 3002
+  
+  dotenv:
+    path: .env
+    basePath: ./
+    include:
+      - DATABASE_URL
+      - JWT_SECRET
+      - JWT_EXPIRES_IN
+      - SMS_API_KEY
+      - WEBSOCKET_ENDPOINT
