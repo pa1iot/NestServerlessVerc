@@ -13,8 +13,8 @@ async function createApp() {
     return cachedApp;
   }
 
-  const expressApp = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp), {
+  // Create NestJS app without manual Express instance to avoid router deprecation
+  const app = await NestFactory.create(AppModule, {
     cors: {
       origin: true,
       credentials: true,
@@ -61,8 +61,8 @@ async function createApp() {
   });
 
   await app.init();
-  cachedApp = expressApp;
-  return expressApp;
+  cachedApp = app.getHttpAdapter().getInstance();
+  return cachedApp;
 }
 
 // For local development
