@@ -12,11 +12,11 @@ import { UpdateDeviceNameDto } from './dto/update-device-name.dto';
 import { ShareDeviceDto } from './dto/share-device.dto';
 
 @ApiTags('Devices')
-@ApiBearerAuth('JWT-auth')
 @Controller('devices')
 export class DevicesController {
   constructor(private readonly devicesService: DevicesService) {}
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('generate')
   @ApiOperation({ summary: 'Generate multiple devices with QR codes' })
   async generateDevices(@Body() dto: CreateMultipleDevicesDto) {
@@ -24,19 +24,23 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get()
   async getAllDevices() {
     return this.devicesService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get('assigned/:userId')
   async getUserDevices(@Param('userId') userId: string) {
     return this.devicesService.findAssignedToUser(Number(userId));
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('assign')
+  @ApiOperation({ summary: 'Assign device to user' })
   async assignDevice(@Body() dto: AssignDeviceDto) {
     const result = await this.devicesService.assignDevice(dto.code, dto.userId);
     if (result.count > 0) {
@@ -56,6 +60,7 @@ export class DevicesController {
     }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get('tracking/:code/history')
   getTrackingHistory(
     @Param('code') code: string,
@@ -68,6 +73,7 @@ export class DevicesController {
 
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('iotnumber')
   @ApiOperation({ summary: 'Update IoT SIM number for a device using code' })
   async updateIotSimNumber(@Body() dto: UpdateIotSimDto) {
@@ -75,6 +81,7 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get(':code')
   @ApiOperation({ summary: 'Get device details by code' })
   async getDeviceByCode(@Param('code') code: string) {
@@ -83,6 +90,7 @@ export class DevicesController {
 
   @Post('editname')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Edit the device name by code' })
   @ApiBody({ type: UpdateDeviceNameDto })
   async updateDeviceName(@Body() dto: UpdateDeviceNameDto) {
@@ -91,6 +99,7 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Post('share')
   @ApiOperation({ summary: 'Share a device with another user' })
   async shareDevice(@Body() dto: ShareDeviceDto) {
@@ -98,6 +107,7 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Delete('share')
   @ApiOperation({ summary: 'Remove device sharing for a user' })
   async unshareDevice(@Body() dto: { deviceId: number; userId: number }) {
@@ -105,6 +115,7 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get('shared/:userId')
   @ApiOperation({ summary: 'Get devices shared with a user' })
   async getSharedDevices(@Param('userId') userId: string) {
@@ -112,6 +123,7 @@ export class DevicesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @Get('shared-users/:deviceId')
   @ApiOperation({ summary: 'Get users who can access the shared device' })
   async getSharedUsers(@Param('deviceId') deviceId: string) {
