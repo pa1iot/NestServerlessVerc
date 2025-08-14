@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaService } from './prisma/prisma.service';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+const express = require('express');
 
 let cachedApp: any;
 
@@ -21,8 +21,7 @@ async function createApp() {
     },
   });
 
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
+  // Skip shutdown hooks for serverless environment
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.setGlobalPrefix('api');
   
