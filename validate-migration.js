@@ -260,7 +260,8 @@ class MigrationValidator {
       this.result.addResult('Environment', '.env.example', 'PASS', 'Environment template exists');
       
       const requiredVars = [
-        'DATABASE_URL',
+        'SUPABASE_URL',
+        'SUPABASE_ANON_KEY',
         'JWT_SECRET',
         'AWS_REGION',
         'SMS_API_KEY'

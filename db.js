@@ -1,6 +1,6 @@
-import postgres from 'postgres'
+// Database connection using Supabase
+// Import supabase client from src/shared/supabase-client.ts for database operations
+// Example: import { supabase } from './src/shared/supabase-client'
+// Then use: supabase.from('TableName').select('*')
 
-const connectionString = process.env.DATABASE_URL
-const sql = postgres(connectionString)
-
-export default sql
+export default null // Legacy file - use Supabase client instead

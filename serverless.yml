@@ -9,7 +9,8 @@ provider:
   memorySize: 512
   
   environment:
-    DATABASE_URL: ${env:DATABASE_URL}
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_ANON_KEY: ${env:SUPABASE_ANON_KEY}
     JWT_SECRET: ${env:JWT_SECRET}
     JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '7d'}
     SMS_API_KEY: ${env:SMS_API_KEY}
@@ -341,7 +342,8 @@ custom:
     path: .env
     basePath: ./
     include:
-      - DATABASE_URL
+      - SUPABASE_URL
+      - SUPABASE_ANON_KEY
       - JWT_SECRET
       - JWT_EXPIRES_IN
       - SMS_API_KEY

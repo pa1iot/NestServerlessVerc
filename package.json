@@ -33,8 +33,7 @@
     "invoke": "sls invoke -f",
     "serverless:info": "sls info",
     "validate:migration": "node validate-migration.js",
-    "prevalidate:migration": "npm install",
-    "postinstall": "prisma generate"
+    "prevalidate:migration": "npm install"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
@@ -70,6 +69,7 @@
     "postgres": "^3.4.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "@supabase/supabase-js": "^2.45.0",
     "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1"
   },
